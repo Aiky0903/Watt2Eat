@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import dotenv from 'dotenv'
+dotenv.config()
 
 const advertSchema = new mongoose.Schema({
   // Who created the advert?
@@ -56,7 +58,7 @@ const advertSchema = new mongoose.Schema({
 
 // Indexes for fast queries
 // TTL Index for auto-expire
-advertSchema.index({ createdAt: 1 }, { expireAfterSeconds: 20 });
+advertSchema.index({ createdAt: 1 }, { expireAfterSeconds: process.env.ADVERT_EXPIRY });
 advertSchema.index({ status: 1, createdAt: -1 });
 advertSchema.index({ acceptedOrders: 1 }); // For order lookups
 
