@@ -1,10 +1,11 @@
 import Order from "../models/order.model.js";
 import Advert from "../models/advert.model.js";
 import mongoose from "mongoose";
+import User from "../models/user.model.js";
 
 /**
  * @desc    Create a new food order
- * @route   POST /server/orders/creatOrder
+ * @route   POST /server/orders/createOrder
  * @access  Public
  */
 export const createOrder = async (req, res) => {
@@ -12,8 +13,7 @@ export const createOrder = async (req, res) => {
   session.startTransaction();
 
   try {
-    const { advertId, items, specialRequests } = req.body;
-    const customerId = req.studentID; // From auth middleware
+    const { advertId, items, customerId } = req.body;
 
     // Validate required fields
     if (!advertId || !items || !Array.isArray(items) || items.length === 0) {
@@ -21,6 +21,15 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Advert ID and at least one menu item are required",
+      });
+    }
+
+    const user = await User.findOne({ studentID: customerId });
+    if (!user) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
       });
     }
 
@@ -90,14 +99,17 @@ export const createOrder = async (req, res) => {
 
     // Create the order
     const order = new Order({
-      customer: customerId,
+      customer: user._id,
       advert: advertId,
       restaurant: advert.restaurant._id,
       items: orderItems,
-      subtotal,
-      deliveryFee: advert.deliveryFee || 0,
-      totalAmount: subtotal + (advert.deliveryFee || 0),
-      specialRequests,
+      deliveryFee:
+        parseFloat(process.env.DELIVERY_FEE) +
+        parseFloat(process.env.PROCESSING_FEE),
+      totalAmount:
+        subtotal +
+        parseFloat(process.env.DELIVERY_FEE) +
+        parseFloat(process.env.PROCESSING_FEE),
     });
 
     // Validate before saving
@@ -134,6 +146,87 @@ export const createOrder = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Internal server error",
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
+/**
+ * @desc    Accept an order (by delivery student)
+ * @route   PATCH /server/orders/:id/accept
+ * @access  Public (Delivery Students)
+ */
+export const acceptOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { id } = req.params;
+    const deliveryStudentId = req.user._id; // From auth middleware
+
+    // 1. Validate order exists
+    const order = await Order.findById(id).session(session);
+    if (!order) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // 2. Get associated advert
+    const advert = await Advert.findById(order.advert).session(session);
+
+    // 3. Verify the requester owns the advert
+    if (!advert.deliveryStudent.equals(deliveryStudentId)) {
+      await session.abortTransaction();
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to accept this order",
+      });
+    }
+
+    // 4. Check advert capacity
+    if (advert.acceptedOrders.length >= advert.maxOrders) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: `Advert has reached maximum orders (${advert.maxOrders})`,
+      });
+    }
+
+    // 5. Update order status
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { status: "accepted" },
+      { new: true, session }
+    );
+
+    // 6. Add to advert's acceptedOrders (if not already present)
+    if (!advert.acceptedOrders.includes(order._id)) {
+      await Advert.findByIdAndUpdate(
+        order.advert,
+        { $addToSet: { acceptedOrders: order._id } },
+        { session }
+      );
+    }
+
+    await session.commitTransaction();
+
+    // 7. TODO: Trigger notification to customer here
+
+    res.status(200).json({
+      success: true,
+      data: updatedOrder,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Order acceptance error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to accept order",
     });
   } finally {
     session.endSession();
