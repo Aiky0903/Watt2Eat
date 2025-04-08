@@ -124,7 +124,7 @@ export const loginStatus = async (req, res) => {
       /** 
        * @description Only return the fields that is required to the frontend for safety
       */
-     // TODO: If needed field in frontend is not there add it here.
+     // TODO: If needed field in frontend is not available add it here.
       const response = {
         studentID: user.studentID,
         email: user.email,

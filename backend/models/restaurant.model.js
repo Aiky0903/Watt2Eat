@@ -20,7 +20,7 @@ const foodItemSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    // Just a placeholder for now.
+    // TODO: A placeholder for tags.
     dietaryTags: [
       {
         // e.g., "vegetarian", "gluten-free"

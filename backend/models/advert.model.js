@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 
 const advertSchema = new mongoose.Schema({
   // Who created the advert?
@@ -12,7 +12,7 @@ const advertSchema = new mongoose.Schema({
   // Location Details
   restaurant: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "restaurant",
+    ref: "Restaurant",
     required: true,
   },
   // Time & Availability
@@ -58,7 +58,10 @@ const advertSchema = new mongoose.Schema({
 
 // Indexes for fast queries
 // TTL Index for auto-expire
-advertSchema.index({ createdAt: 1 }, { expireAfterSeconds: process.env.ADVERT_EXPIRY });
+advertSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: parseInt(process.env.ADVERT_EXPIRY) }
+);
 advertSchema.index({ status: 1, createdAt: -1 });
 advertSchema.index({ acceptedOrders: 1 }); // For order lookups
 
