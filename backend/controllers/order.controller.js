@@ -13,7 +13,8 @@ export const createOrder = async (req, res) => {
   session.startTransaction();
 
   try {
-    const { advertId, items, customerId } = req.body;
+    const customer = req.user;
+    const { advertId, items } = req.body;
 
     // Validate required fields
     if (!advertId || !items || !Array.isArray(items) || items.length === 0) {
@@ -24,7 +25,7 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ studentID: customerId });
+    const user = await User.findById(customer._id);
     if (!user) {
       await session.abortTransaction();
       return res.status(404).json({
@@ -164,7 +165,7 @@ export const acceptOrder = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { deliveryStudentID } = req.body;
+    const deliveryStudent = req.user;
 
     // 1. Validate order exists
     const order = await Order.findById(id).session(session);
@@ -190,7 +191,7 @@ export const acceptOrder = async (req, res) => {
       .session(session);
 
     // 3. Verify the requester owns the advert
-    if (advert.deliveryStudent.studentID !== deliveryStudentID) {
+    if (advert.deliveryStudent.studentID !== deliveryStudent.studentID) {
       await session.abortTransaction();
       return res.status(403).json({
         success: false,

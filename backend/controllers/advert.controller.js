@@ -13,13 +13,9 @@ export const createAdvert = async (req, res) => {
   session.startTransaction();
 
   try {
-    const {
-      deliveryStudent,
-      restaurant,
-      departureTime,
-      estimatedReturnTime,
-      maxOrders,
-    } = req.body;
+    const deliveryStudent = req.user;
+    const { restaurant, departureTime, estimatedReturnTime, maxOrders } =
+      req.body;
 
     // Validate required fields
     if (
@@ -45,7 +41,7 @@ export const createAdvert = async (req, res) => {
       });
     }
 
-    const validUser = await User.findOne({ studentID: deliveryStudent });
+    const validUser = await User.findById(deliveryStudent._id);
     if (!validUser) {
       return res.status(401).json({
         success: false,
@@ -89,6 +85,7 @@ export const createAdvert = async (req, res) => {
     res.status(201).json({
       success: true,
       data: newAdvert,
+      message: "Advert successfully created.",
     });
   } catch (error) {
     await session.abortTransaction();

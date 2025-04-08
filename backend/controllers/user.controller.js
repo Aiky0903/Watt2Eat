@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -7,19 +6,14 @@ dotenv.config();
 
 // JSON Web Token helper function
 const jwtSecret = process.env.JWT_SECRET;
-async function generateJWT(res, user) {
-  let data = {
-    user: user,
-    loggedIn: true,
-  };
-
+async function generateJWT(res, userId) {
   // Create JWT
-  const token = jwt.sign(data, jwtSecret);
+  const token = jwt.sign({ userId }, jwtSecret);
   console.log("New json token was created.");
 
   // Save JWT in browser cookies
-  res.clearCookie("JWTAuth");
-  res.cookie("JWTAuth", token, { httpOnly: true });
+  res.clearCookie("jwt");
+  res.cookie("jwt", token, { httpOnly: true });
 }
 
 /**
@@ -40,17 +34,14 @@ export const registerUser = async (req, res) => {
   }
 
   try {
-    await User.create({
+    const user = await User.create({
       studentID: req.body.studentID,
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
       phone: req.body.phone,
     });
-
-    const parsedUser = await User.findOne({ username: req.body.username });
-
-    generateJWT(res, parsedUser); // Generate JWT for user and save in cookie
+    generateJWT(res, user._id); // Generate JWT for user and save in cookie
     return res.status(200).json({ success: true, message: "Account created" });
   } catch (err) {
     console.log(err);
@@ -73,9 +64,10 @@ export const loginUser = async (req, res) => {
   }).select("+password");
 
   if (!validUser) {
-    return res
-      .status(401)
-      .json({ success: false, message: `${req.body.studentID} is not registered.` });
+    return res.status(401).json({
+      success: false,
+      message: `${req.body.studentID} is not registered.`,
+    });
   }
 
   const validPassword = await validUser.comparePassword(req.body.password);
@@ -84,7 +76,7 @@ export const loginUser = async (req, res) => {
     return res.status(401).json({ success: false, message: "Wrong Password!" });
   }
 
-  generateJWT(res, validUser); // Generate JWT for user and save in cookie
+  generateJWT(res, validUser._id); // Generate JWT for user and save in cookie
   return res
     .status(200)
     .json({ success: true, message: "Authenticated to system" });
@@ -97,7 +89,7 @@ export const loginUser = async (req, res) => {
  */
 export const loginStatus = async (req, res) => {
   // Get the JWT Token from the browser cookies
-  const token = req.cookies["JWTAuth"];
+  const token = req.cookies.jwt;
   if (!token) {
     return res.status(401).json({
       success: false,
@@ -110,10 +102,8 @@ export const loginStatus = async (req, res) => {
     const verifyToken = jwt.verify(token, jwtSecret);
     if (verifyToken) {
       const decodedToken = jwtDecode(token);
-      console.log(decodedToken.user);
-      const user = await User.findOne({
-        username: decodedToken.user.username,
-      }); // Query user
+      console.log(decodedToken);
+      const user = await User.findById(decodedToken.userId);
 
       if (!user) {
         return res
@@ -121,10 +111,10 @@ export const loginStatus = async (req, res) => {
           .json({ success: false, message: "User not found!" });
       }
 
-      /** 
+      /**
        * @description Only return the fields that is required to the frontend for safety
-      */
-     // TODO: If needed field in frontend is not available add it here.
+       */
+      // TODO: If needed field in frontend is not available add it here.
       const response = {
         studentID: user.studentID,
         email: user.email,
@@ -150,6 +140,6 @@ export const loginStatus = async (req, res) => {
  * @access  Public
  */
 export const logoutUser = (req, res) => {
-  res.clearCookie("JWTAuth");
+  res.clearCookie("jwt");
   res.json("Logout successful");
 };
