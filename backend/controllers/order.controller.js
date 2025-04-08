@@ -131,6 +131,7 @@ export const createOrder = async (req, res) => {
     res.status(201).json({
       success: true,
       data: order,
+      message: "Order successfully placed.",
     });
   } catch (error) {
     await session.abortTransaction();
@@ -155,7 +156,7 @@ export const createOrder = async (req, res) => {
 /**
  * @desc    Accept an order (by delivery student)
  * @route   PATCH /server/orders/:id/accept
- * @access  Public (Delivery Students)
+ * @access  Public
  */
 export const acceptOrder = async (req, res) => {
   const session = await mongoose.startSession();
@@ -163,7 +164,7 @@ export const acceptOrder = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const deliveryStudentId = req.user._id; // From auth middleware
+    const { deliveryStudentID } = req.body;
 
     // 1. Validate order exists
     const order = await Order.findById(id).session(session);
@@ -175,11 +176,21 @@ export const acceptOrder = async (req, res) => {
       });
     }
 
+    if (order.status === "accepted") {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "Order already accepted",
+      });
+    }
+
     // 2. Get associated advert
-    const advert = await Advert.findById(order.advert).session(session);
+    const advert = await Advert.findById(order.advert)
+      .populate({ path: "deliveryStudent" })
+      .session(session);
 
     // 3. Verify the requester owns the advert
-    if (!advert.deliveryStudent.equals(deliveryStudentId)) {
+    if (advert.deliveryStudent.studentID !== deliveryStudentID) {
       await session.abortTransaction();
       return res.status(403).json({
         success: false,
@@ -203,22 +214,15 @@ export const acceptOrder = async (req, res) => {
       { new: true, session }
     );
 
-    // 6. Add to advert's acceptedOrders (if not already present)
-    if (!advert.acceptedOrders.includes(order._id)) {
-      await Advert.findByIdAndUpdate(
-        order.advert,
-        { $addToSet: { acceptedOrders: order._id } },
-        { session }
-      );
-    }
-
+    // 6. Save the updated order
+    await updatedOrder.save();
     await session.commitTransaction();
 
     // 7. TODO: Trigger notification to customer here
-
     res.status(200).json({
       success: true,
       data: updatedOrder,
+      message: "Order successfully accepted.",
     });
   } catch (error) {
     await session.abortTransaction();
