@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { connectDB } from "./config/db.js";
+//import socketio from 'socket.io'
 import {
   userRoutes,
   restaurantRoutes,
@@ -12,12 +13,17 @@ import {
 // Load env variable
 dotenv.config();
 
+// IO is our socket.io server
+//const io = socketio()
+
 // Initialize Express apps
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// Routes
 app.use("/server/users", userRoutes);
 app.use("/server/restaurant", restaurantRoutes);
 app.use("/server/advert", advertRoutes);

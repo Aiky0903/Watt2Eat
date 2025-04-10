@@ -1,10 +1,17 @@
-import { Button } from '@/components/ui/button'
-import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 
 const AppRoutes = () => {
   return (
-    <Button className = "p-10cd">App Routes</Button>
-  )
+    <Router>
+      <Routes>
+        <Route></Route>
+        <Route></Route>
+        <Route></Route>
+        <Route></Route>
+      </Routes>
+    </Router>
+  );
 }
 
 export default AppRoutes
