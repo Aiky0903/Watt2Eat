@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import Order from "./order.model.js";
 dotenv.config();
 
 const advertSchema = new mongoose.Schema(
@@ -37,8 +38,8 @@ const advertSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "Order",
         validate: {
-          validator: function (orders) {
-            return orders.length <= this.maxOrders;
+          validator: function () {
+            return this.acceptedOrders.length < this.maxOrders;
           },
           message: "Error: Max orders exceeded for this advert",
         },
@@ -70,6 +71,35 @@ advertSchema.pre("deleteOne", { document: true }, async function (next) {
     next();
   } catch (err) {
     next(new Error(`Failed to clean up orders: ${err.message}`));
+  }
+});
+
+advertSchema.pre("save", async function (next) {
+  try {
+    console.log(this.isModified("status"));
+    // Only trigger if status was changed to 'in_progress'
+    if (this.isModified("status") && this.status === "in_progress") {
+      // Update all accepted orders
+      await mongoose.model("Order").updateMany(
+        {
+          _id: { $in: this.acceptedOrders },
+          status: "accepted", // Only update accepted orders
+        },
+        { $set: { status: "in_progress" } }
+      );
+    } else if (this.isModified("status") && this.status === "cancelled") {
+      // Update all cancelled orders
+      await mongoose.model("Order").updateMany(
+        {
+          _id: { $in: this.acceptedOrders },
+        },
+        { $set: { status: "cancelled" } }
+      );
+    }
+    next();
+  } catch (err) {
+    console.error("Error updating order statuses:", err);
+    next(err);
   }
 });
 

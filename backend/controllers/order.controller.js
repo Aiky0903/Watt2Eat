@@ -155,6 +155,86 @@ export const createOrder = async (req, res) => {
 };
 
 /**
+ * @desc    Cancel an order (by delivery student)
+ * @route   PATCH /server/orders/:id/cancel
+ * @access  Public
+ */
+export const cancelOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { id } = req.params;
+    const deliveryStudent = req.user;
+
+    // 1. Validate order exists
+    const order = await Order.findById(id).session(session);
+    if (!order) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    if (order.status === "cancelled") {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "Order already cancelled",
+      });
+    }
+
+    // 2. Get associated advert
+    const advert = await Advert.findById(order.advert)
+      .populate({ path: "deliveryStudent" })
+      .session(session);
+
+    // 3. Verify the requester owns the advert
+    if (advert.deliveryStudent.studentID !== deliveryStudent.studentID) {
+      await session.abortTransaction();
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to accept this order",
+      });
+    }
+
+    // 4. Check advert capacity
+    if (advert.acceptedOrders.length >= advert.maxOrders) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: `Advert has reached maximum orders (${advert.maxOrders})`,
+      });
+    }
+
+    // 5. Update order status
+    order.status = "cancelled";
+
+    // 6. Save the updated order
+    await order.save();
+    await session.commitTransaction();
+
+    // 7. TODO: Trigger notification to customer here
+    res.status(200).json({
+      success: true,
+      data: order,
+      message: "Order successfully cancelled.",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Order cancellation error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel order",
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
+/**
  * @desc    Accept an order (by delivery student)
  * @route   PATCH /server/orders/:id/accept
  * @access  Public
@@ -209,20 +289,16 @@ export const acceptOrder = async (req, res) => {
     }
 
     // 5. Update order status
-    const updatedOrder = await Order.findByIdAndUpdate(
-      id,
-      { status: "accepted" },
-      { new: true, session }
-    );
+    order.status = "accepted";
 
     // 6. Save the updated order
-    await updatedOrder.save();
+    await order.save();
     await session.commitTransaction();
 
     // 7. TODO: Trigger notification to customer here
     res.status(200).json({
       success: true,
-      data: updatedOrder,
+      data: order,
       message: "Order successfully accepted.",
     });
   } catch (error) {
