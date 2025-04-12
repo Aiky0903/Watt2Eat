@@ -1,9 +1,8 @@
-import React from "react";
 import AppRoutes from "./routes/AppRoutes";
 
 const App = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex justify-center items-center flex-col sm:p-4">
       <AppRoutes />
     </div>
   );
