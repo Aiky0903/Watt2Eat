@@ -5,6 +5,7 @@ import {
   completeAdvert,
   cancelAdvert,
   progressAdvert,
+  deleteAdvert,
 } from "../controllers/advert.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -20,5 +21,8 @@ router.get("/getActiveAdverts", getActiveAdverts);
 router.patch("/:id/complete", protectRoute, completeAdvert);
 router.patch("/:id/cancel", protectRoute, cancelAdvert);
 router.patch("/:id/progress", protectRoute, progressAdvert);
+
+// Delete Methods
+router.delete("/:id/delete", protectRoute, deleteAdvert);
 
 export default router;

@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Advert from "./advert.model.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const orderItemSchema = new mongoose.Schema(
   {
@@ -126,6 +128,10 @@ orderSchema.post("save", async function (doc) {
 orderSchema.index({ customer: 1 }); // All orders by a user
 orderSchema.index({ advert: 1 }); // All orders for an advert
 orderSchema.index({ status: 1 }); // Filter by status
+orderSchema.index(
+  { updatedAt: 1 },
+  { expireAfterSeconds: parseInt(process.env.ADVERT_EXPIRY) }
+);
 
 const Order = mongoose.model("Order", orderSchema);
 

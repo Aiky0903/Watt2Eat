@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Order from "./order.model.js";
 dotenv.config();
 
 const advertSchema = new mongoose.Schema(
@@ -76,7 +75,6 @@ advertSchema.pre("deleteOne", { document: true }, async function (next) {
 
 advertSchema.pre("save", async function (next) {
   try {
-    console.log(this.isModified("status"));
     // Only trigger if status was changed to 'in_progress'
     if (this.isModified("status") && this.status === "in_progress") {
       // Update all accepted orders
