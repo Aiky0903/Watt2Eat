@@ -331,3 +331,54 @@ export const getActiveAdverts = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const deleteAdvert = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { id } = req.params;
+    const deliveryStudent = req.user; // From auth middlware
+
+    // 1. Validate advert exists
+    const advert = await Advert.findById(id)
+      .populate({ path: "deliveryStudent" })
+      .session(session);
+
+    if (!advert) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "Advert not found",
+      });
+    }
+
+    // 2. Verify the requester owns the advert
+    if (advert.deliveryStudent.studentID !== deliveryStudent.studentID) {
+      await session.abortTransaction();
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this order",
+      });
+    }
+
+    // 3. Delete to order
+    await advert.deleteOne({ session });
+    await session.commitTransaction();
+
+    // 4. TODO: Trigger notification to customer here
+    res.status(200).json({
+      success: true,
+      message: "Advert successfully deleted.",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Advert deletion error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete advert.",
+    });
+  } finally {
+    session.endSession();
+  }
+};
