@@ -15,6 +15,17 @@ async function generateJWT(res, userId) {
   res.clearCookie("jwt");
   res.cookie("jwt", token, { httpOnly: true });
 }
+/**
+ * @description Only return the fields that is required to the frontend for safety
+ */
+// TODO: If needed field in frontend is not available add it here.
+const sanitizeUser = (user) => ({
+  studentID: user.studentID,
+  email: user.email,
+  username: user.username,
+  phone: user.phone,
+  ordersPlaced: user.ordersPlaced,
+});
 
 /**
  * @desc    Registers the user
@@ -58,7 +69,7 @@ export const registerUser = async (req, res) => {
  */
 export const loginUser = async (req, res) => {
   // Check if user exists
-  // Make sure to add the password back to the user to check of validation
+  // Make sure to add the password back to the user to check for validation
   const validUser = await User.findOne({
     studentID: req.body.studentID,
   }).select("+password");
@@ -76,10 +87,16 @@ export const loginUser = async (req, res) => {
     return res.status(401).json({ success: false, message: "Wrong Password!" });
   }
 
-  generateJWT(res, validUser._id); // Generate JWT for user and save in cookie
-  return res
-    .status(200)
-    .json({ success: true, message: "Authenticated to system" });
+  // Generate JWT for user and save in cookie
+  generateJWT(res, validUser._id);
+
+  const response = sanitizeUser(validUser);
+
+  return res.status(200).json({
+    success: true,
+    message: "Authenticated to system",
+    data: response,
+  });
 };
 
 /**
@@ -102,7 +119,6 @@ export const loginStatus = async (req, res) => {
     const verifyToken = jwt.verify(token, jwtSecret);
     if (verifyToken) {
       const decodedToken = jwtDecode(token);
-      console.log(decodedToken);
       const user = await User.findById(decodedToken.userId);
 
       if (!user) {
@@ -111,17 +127,7 @@ export const loginStatus = async (req, res) => {
           .json({ success: false, message: "User not found!" });
       }
 
-      /**
-       * @description Only return the fields that is required to the frontend for safety
-       */
-      // TODO: If needed field in frontend is not available add it here.
-      const response = {
-        studentID: user.studentID,
-        email: user.email,
-        username: user.username,
-        phone: user.phone,
-        ordersPlaced: user.ordersPlaced,
-      };
+      const response = sanitizeUser(user);
       return res.status(200).json({ success: true, data: response });
     }
   } catch (err) {
@@ -140,6 +146,13 @@ export const loginStatus = async (req, res) => {
  * @access  Public
  */
 export const logoutUser = (req, res) => {
-  res.clearCookie("jwt");
-  res.json("Logout successful");
+  try {
+    res.clearCookie("jwt");
+    return res.json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    console.log("Error is logging out: ", error.message);
+    return res
+      .status(401)
+      .json({ success: false, message: "Failed to logout" });
+  }
 };
