@@ -1,4 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
+import { toast } from "sonner";
 import { create } from "zustand";
 
 export const useUserStore = create((set, get) => ({
@@ -24,6 +25,34 @@ export const useUserStore = create((set, get) => ({
       set({ user: null });
     } finally {
       set({ isCheckingAuth: false });
+    }
+  },
+
+  loginUser: async (form) => {
+    set({ isLoggingIn: true });
+    try {
+      const res = await axiosInstance.post("/users/loginUser", form);
+      set({ user: res.data.data });
+      toast.success(res.data.message);
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ isLoggingIn: false });
+    }
+  },
+
+  logoutUser: async () => {
+    try {
+      const res = await axiosInstance.get("/users/logoutUser");
+      if (res.data.success) {
+        toast.success(res.data.message);
+        set({ user: null });
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (error) {
+      console.log("Error is signing out: ", error.message);
+      toast.error(error.response.data.message);
     }
   },
 }));
