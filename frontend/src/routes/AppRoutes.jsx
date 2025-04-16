@@ -5,6 +5,7 @@ import SignUpPage from "@/pages/SignUpPage/SignUpPage";
 import { useUserStore } from "@/store/userStore";
 import { Loader } from "lucide-react";
 import { useEffect } from "react";
+import LogoText from "../../public/LOGO_TEXT.png";
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,44 +13,50 @@ import {
   Navigate,
 } from "react-router-dom";
 import { Toaster } from "sonner";
+import LandingPage from "@/pages/LandingPage/LandingPage";
 
 const AppRoutes = () => {
   const { user, checkAuth, isCheckingAuth } = useUserStore();
+
+  // All the routes listed here for abstractioon
+  const homePageRoute = "/home";
+  const loginPageRoute = "/login";
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  // Loading Spinner
+  // Loading Page state
   if (isCheckingAuth && !user) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
+      <div className="absolute flex items-center justify-center h-full w-full">
+        <img src={LogoText}></img>
       </div>
     );
   }
 
   return (
-    <Card className="flex-1 overflow-hidden w-full sm:w-[430px] sm:h-[900px] sm:rounded-[3rem] p-4 bg-[#204160] shadow-2xl text-white">
+    <>
       <Router>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route
-            path="/"
-            element={user ? <HomePage /> : <Navigate to="/login" />}
+            path={homePageRoute}
+            element={user ? <HomePage /> : <Navigate to={loginPageRoute} />}
           />
           <Route
-            path="/login"
-            element={!user ? <LoginPage /> : <Navigate to="/" />}
+            path={loginPageRoute}
+            element={!user ? <LoginPage /> : <Navigate to={homePageRoute} />}
           />
           <Route
             path="/signup"
-            element={!user ? <SignUpPage /> : <Navigate to="/" />}
+            element={!user ? <SignUpPage /> : <Navigate to={homePageRoute} />}
           />
           <Route />
         </Routes>
       </Router>
       <Toaster richColors position="bottom-center" />
-    </Card>
+    </>
   );
 };
 
