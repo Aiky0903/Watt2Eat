@@ -14,11 +14,22 @@ const io = new Server(server, {
   },
 });
 
+// Map to store all active users.
+const userSocketMap = {}; // {studentID : socketID}
+
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
+  const studentID = socket.handshake.query.studentID;
+  if (studentID) userSocketMap[studentID] = socket.id;
+
+  // Emit sends events to all connected users on the client side.
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.id);
+    delete userSocketMap[studentID];
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
 
