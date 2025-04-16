@@ -4,13 +4,20 @@ import { useUserStore } from "@/store/userStore";
 import { useState } from "react";
 
 const LoginPage = () => {
+  // TODO: Use this state to control the show password button
   const [showPassword, setShowPassword] = useState(false);
+
+  // Form to be submitted to the backend
   const [formData, setFormData] = useState({
     studentID: "",
     username: "",
     password: "",
   });
+
+  // Zustand user store
   const { loginUser, isLoggingIn } = useUserStore();
+
+  // Submit function for form
   const handleSubmit = async (e) => {
     e.preventDefault();
     loginUser(formData);

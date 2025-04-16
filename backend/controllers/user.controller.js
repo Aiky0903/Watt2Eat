@@ -68,6 +68,13 @@ export const registerUser = async (req, res) => {
  * @access  Public
  */
 export const loginUser = async (req, res) => {
+  // If check if all fields are provided
+  if (!req.body.studentID || !req.body.username || !req.body.password) {
+    return res.status(401).json({
+      success: false,
+      message: "Please provide all fields.",
+    });
+  }
   // Check if user exists
   // Make sure to add the password back to the user to check for validation
   const validUser = await User.findOne({
@@ -87,6 +94,12 @@ export const loginUser = async (req, res) => {
     return res.status(401).json({ success: false, message: "Wrong Password!" });
   }
 
+  const validUsername = req.body.username === validUser.username;
+
+  if (!validUsername) {
+    return res.status(401).json({ success: false, message: "Wrong Username!" });
+  }
+
   // Generate JWT for user and save in cookie
   generateJWT(res, validUser._id);
 
@@ -94,7 +107,7 @@ export const loginUser = async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    message: "Authenticated to system",
+    message: "Logged in successfully",
     data: response,
   });
 };
