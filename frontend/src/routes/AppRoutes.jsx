@@ -3,9 +3,8 @@ import HomePage from "@/pages/HomePage/HomePage";
 import LoginPage from "@/pages/LoginPage/LoginPage";
 import SignUpPage from "@/pages/SignUpPage/SignUpPage";
 import { useUserStore } from "@/store/userStore";
-import { Loader } from "lucide-react";
 import { useEffect } from "react";
-import LogoText from "../../public/LOGO_TEXT.png";
+import LogoText from "/LOGO_TEXT.png";
 import {
   BrowserRouter as Router,
   Routes,
@@ -21,6 +20,7 @@ const AppRoutes = () => {
   // All the routes listed here for abstractioon
   const homePageRoute = "/home";
   const loginPageRoute = "/login";
+  const signUpPageRoute = "/signup";
 
   useEffect(() => {
     checkAuth();
@@ -49,7 +49,7 @@ const AppRoutes = () => {
             element={!user ? <LoginPage /> : <Navigate to={homePageRoute} />}
           />
           <Route
-            path="/signup"
+            path={signUpPageRoute}
             element={!user ? <SignUpPage /> : <Navigate to={homePageRoute} />}
           />
           <Route />
