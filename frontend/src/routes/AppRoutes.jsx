@@ -1,7 +1,3 @@
-import { Card } from "@/components/ui/card";
-import HomePage from "@/pages/HomePage/HomePage";
-import LoginPage from "@/pages/LoginPage/LoginPage";
-import SignUpPage from "@/pages/SignUpPage/SignUpPage";
 import { useUserStore } from "@/store/userStore";
 import { useEffect } from "react";
 import LogoText from "/LOGO_TEXT.png";
@@ -10,14 +6,20 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import { Toaster } from "sonner";
-import LandingPage from "@/pages/LandingPage/LandingPage";
+import { AnimatePresence } from "framer-motion";
+import PageWrapper from "@/components/ui/animation/PageWrapper";
+
+// TODO: Import pages here
+import { HomePage, LoginPage, SignUpPage, LandingPage } from "@/pages";
 
 const AppRoutes = () => {
   const { user, checkAuth, isCheckingAuth } = useUserStore();
+  const location = useLocation(); // To track route changes
 
-  // All the routes listed here for abstractioon
+  // TODO: List all routes here for abstractioon
   const homePageRoute = "/home";
   const loginPageRoute = "/login";
   const signUpPageRoute = "/signup";
@@ -26,35 +28,69 @@ const AppRoutes = () => {
     checkAuth();
   }, [checkAuth]);
 
-  // Loading Page state
-  if (isCheckingAuth && !user) {
-    return (
-      <div className="absolute flex items-center justify-center h-full w-full">
-        <img src={LogoText}></img>
-      </div>
-    );
-  }
-
   return (
     <>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route
-            path={homePageRoute}
-            element={user ? <HomePage /> : <Navigate to={loginPageRoute} />}
-          />
-          <Route
-            path={loginPageRoute}
-            element={!user ? <LoginPage /> : <Navigate to={homePageRoute} />}
-          />
-          <Route
-            path={signUpPageRoute}
-            element={!user ? <SignUpPage /> : <Navigate to={homePageRoute} />}
-          />
-          <Route />
-        </Routes>
-      </Router>
+      <AnimatePresence mode="wait">
+        {
+          //*Loading Page State
+          isCheckingAuth && !user ? (
+            <PageWrapper key="loading">
+              <div className="absolute flex items-center justify-center h-full w-full">
+                <img src={LogoText} alt="Loading..." />
+              </div>
+            </PageWrapper>
+          ) : (
+            //TODO: Add Routes Here
+            //* Make sure to wrap the actual routes
+            <Routes location={location} key={location.pathname}>
+              <Route
+                path="/"
+                element={
+                  <PageWrapper>
+                    <LandingPage />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path={homePageRoute}
+                element={
+                  user ? (
+                    <PageWrapper>
+                      <HomePage />
+                    </PageWrapper>
+                  ) : (
+                    <Navigate to={loginPageRoute} />
+                  )
+                }
+              />
+              <Route
+                path={loginPageRoute}
+                element={
+                  !user ? (
+                    <PageWrapper>
+                      <LoginPage />
+                    </PageWrapper>
+                  ) : (
+                    <Navigate to={homePageRoute} />
+                  )
+                }
+              />
+              <Route
+                path={signUpPageRoute}
+                element={
+                  !user ? (
+                    <PageWrapper>
+                      <SignUpPage />
+                    </PageWrapper>
+                  ) : (
+                    <Navigate to={homePageRoute} />
+                  )
+                }
+              />
+            </Routes>
+          )
+        }
+      </AnimatePresence>
       <Toaster richColors position="bottom-center" />
     </>
   );

@@ -1,9 +1,11 @@
-import { Input } from "@/components/ui/input"
+import SignUpForm from "./components/SignUpForm";
 
 const SignUpPage = () => {
   return (
-    <div>SignUpPage</div>
-  )
-}
+    <div>
+      <SignUpForm />
+    </div>
+  );
+};
 
-export default SignUpPage
+export default SignUpPage;
