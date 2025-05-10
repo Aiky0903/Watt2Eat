@@ -26,14 +26,6 @@ const userSchema = mongoose.Schema({
     unique: true,
     trim: true,
   },
-  phone: {
-    type: String,
-    required: true,
-    validate: {
-      validator: (v) => /^\+?[0-9]{10,15}$/.test(v), // Basic phone validation
-      message: "Phone number must be 10-15 digits",
-    },
-  },
   // Roles & Permissions
   role: {
     type: String,

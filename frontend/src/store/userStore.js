@@ -30,13 +30,27 @@ export const useUserStore = create((set, get) => ({
     try {
       const res = await axiosInstance.get("/users/loginStatus");
       set({ user: res.data });
-      console.log("Checking Auth")
+      console.log("Checking Auth");
       get().connectSocket();
     } catch (error) {
       console.log("Error in checking Auth: ", error);
       set({ user: null });
     } finally {
       set({ isCheckingAuth: false });
+    }
+  },
+
+  registerUser: async (form) => {
+    set({ isSigningUp: true });
+    try {
+      const res = await axiosInstance.post("/users/registerUser", form);
+      set({ user: res.data.data });
+      toast.success(res.data.message);
+      get().connectSocket();
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ isSigningUp: false });
     }
   },
 
@@ -81,9 +95,7 @@ export const useUserStore = create((set, get) => ({
     socket.connect();
     set({ socket: socket });
 
-    socket.on('getOnlineUsers', (studentID) => {
-
-    })
+    socket.on("getOnlineUsers", (studentID) => {});
   },
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();

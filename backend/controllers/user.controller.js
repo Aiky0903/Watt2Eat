@@ -23,7 +23,6 @@ const sanitizeUser = (user) => ({
   studentID: user.studentID,
   email: user.email,
   username: user.username,
-  phone: user.phone,
   ordersPlaced: user.ordersPlaced,
 });
 
@@ -34,13 +33,23 @@ const sanitizeUser = (user) => ({
  */
 export const registerUser = async (req, res) => {
   if (
+    !req.body.username ||
+    !req.body.studentID ||
+    !req.body.email ||
+    !req.body.password
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Please provide all fields." });
+  }
+
+  if (
     (await User.findOne({ studentID: req.body.studentID })) ||
-    (await User.findOne({ email: req.body.email })) ||
-    (await User.findOne({ phone: req.body.phone }))
+    (await User.findOne({ email: req.body.email }))
   ) {
     return res.status(409).json({
       success: false,
-      message: "StudentID or Email or Phone has already been registered!",
+      message: "StudentID or Email has already been registered!",
     });
   }
 
@@ -50,10 +59,13 @@ export const registerUser = async (req, res) => {
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
-      phone: req.body.phone,
     });
     generateJWT(res, user._id); // Generate JWT for user and save in cookie
-    return res.status(200).json({ success: true, message: "Account created" });
+    return res.status(200).json({
+      success: true,
+      message: "Account created",
+      data: sanitizeUser(user),
+    });
   } catch (err) {
     console.log(err);
     return res
@@ -70,7 +82,7 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   // If check if all fields are provided
   if (!req.body.studentID || !req.body.username || !req.body.password) {
-    return res.status(401).json({
+    return res.status(400).json({
       success: false,
       message: "Please provide all fields.",
     });
@@ -82,7 +94,7 @@ export const loginUser = async (req, res) => {
   }).select("+password");
 
   if (!validUser) {
-    return res.status(401).json({
+    return res.status(404).json({
       success: false,
       message: `${req.body.studentID} is not registered.`,
     });
@@ -91,13 +103,13 @@ export const loginUser = async (req, res) => {
   const validPassword = await validUser.comparePassword(req.body.password);
 
   if (!validPassword) {
-    return res.status(401).json({ success: false, message: "Wrong Password!" });
+    return res.status(400).json({ success: false, message: "Wrong Password!" });
   }
 
   const validUsername = req.body.username === validUser.username;
 
   if (!validUsername) {
-    return res.status(401).json({ success: false, message: "Wrong Username!" });
+    return res.status(400).json({ success: false, message: "Wrong Username!" });
   }
 
   // Generate JWT for user and save in cookie
@@ -136,7 +148,7 @@ export const loginStatus = async (req, res) => {
 
       if (!user) {
         return res
-          .status(401)
+          .status(400)
           .json({ success: false, message: "User not found!" });
       }
 
@@ -165,7 +177,7 @@ export const logoutUser = (req, res) => {
   } catch (error) {
     console.log("Error is logging out: ", error.message);
     return res
-      .status(401)
+      .status(500)
       .json({ success: false, message: "Failed to logout" });
   }
 };

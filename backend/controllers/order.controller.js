@@ -193,7 +193,7 @@ export const cancelOrder = async (req, res) => {
     // 3. Verify the requester owns the advert
     if (advert.deliveryStudent.studentID !== deliveryStudent.studentID) {
       await session.abortTransaction();
-      return res.status(403).json({
+      return res.status(401).json({
         success: false,
         message: "Not authorized to accept this order",
       });
