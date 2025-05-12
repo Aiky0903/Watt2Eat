@@ -15,20 +15,20 @@ const io = new Server(server, {
 });
 
 // Map to store all active users.
-const userSocketMap = {}; // {studentID : socketID}
+const userSocketMap = {}; // Stored in {key : value} pairs of {email : socketID}
 
 io.on("connection", (socket) => {
-  console.log("A user connected", socket.id);
+  console.log("User connected:", socket.handshake.query.email);
 
-  const studentID = socket.handshake.query.studentID;
-  if (studentID) userSocketMap[studentID] = socket.id;
+  const email = socket.handshake.query.email;
+  if (email) userSocketMap[email] = socket.id;
 
   // Emit sends events to all connected users on the client side.
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected", socket.id);
-    delete userSocketMap[studentID];
+    console.log("User disconnected:", socket.handshake.query.email);
+    delete userSocketMap[email];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });

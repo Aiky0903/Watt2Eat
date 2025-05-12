@@ -16,7 +16,7 @@ import PageWrapper from "@/components/ui/animation/PageWrapper";
 import { HomePage, LoginPage, SignUpPage, LandingPage } from "@/pages";
 
 const AppRoutes = () => {
-  const { user, checkAuth, isCheckingAuth } = useUserStore();
+  const { user, checkAuth, isCheckingAuth, onlineUsers } = useUserStore();
   const location = useLocation(); // To track route changes
 
   // TODO: List all routes here for abstractioon
@@ -24,6 +24,8 @@ const AppRoutes = () => {
   const loginPageRoute = "/login";
   const signUpPageRoute = "/signup";
 
+  console.log(onlineUsers);
+  
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);

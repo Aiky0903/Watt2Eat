@@ -8,6 +8,7 @@ const PageWrapper = ({ children }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3 }}
+      className="flex-1 flex"
     >
       {children}
     </motion.div>

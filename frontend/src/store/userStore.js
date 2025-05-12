@@ -15,6 +15,7 @@ export const useUserStore = create((set, get) => ({
   // ordersPlaced: user.ordersPlaced,
   // }
   user: null,
+  onlineUsers: [],
 
   // Loading States
   isSigningUp: false,
@@ -89,13 +90,15 @@ export const useUserStore = create((set, get) => ({
     if (!user || get().socket?.connected) return;
     const socket = io(BASE_URL, {
       query: {
-        studentID: user.studentID,
+        email: user.email,
       },
     });
     socket.connect();
     set({ socket: socket });
 
-    socket.on("getOnlineUsers", (studentID) => {});
+    socket.on("getOnlineUsers", (emails) => {
+      set({ onlineUsers: emails });
+    });
   },
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();

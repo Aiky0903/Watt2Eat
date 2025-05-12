@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import LOGO from "/LOGO_NO_TEXT.png";
-import BURGER from "/burger.png"
+import HERO from "/LANDING_HERO.png";
+import BURGER from "/burger.png";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -12,13 +12,12 @@ const LandingPage = () => {
     navigate("signup");
   };
   return (
-    <div>
-      <div className="flex items-center">
-        <img src={LOGO} />
-        <img src={BURGER} />
+    <div className="flex-1 flex flex-col gap-6 pt-14">
+      <div className="flex items-center justify-center">
+        <img src={HERO} />
       </div>
-      <div className="flex flex-col gap-12">
-        <div className="font-poppins font-bold text-3xl leading-[44px] px-6 ">
+      <div className="flex flex-col gap-8">
+        <div className="font-poppins font-bold text-3xl leading-[44px] px-6 text-pretty">
           Stuck on campus? Let a friend bring it to you. Already out? Be the one
           to help.
         </div>
@@ -32,7 +31,7 @@ const LandingPage = () => {
           </Button>
           <Button
             onClick={navigateLogin}
-            className="bg-logoOrange text-[#204160] font-poppins"
+            className="bg-logoOrange text-[#204160]"
             size="welcome"
           >
             Log in
