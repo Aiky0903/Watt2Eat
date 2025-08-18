@@ -12,7 +12,7 @@ const LandingPage = () => {
     navigate("signup");
   };
   return (
-    <div className="flex-1 flex flex-col gap-6 pt-14">
+    <div className="flex-1 flex flex-col gap-6 pt-14 p-4">
       <div className="flex items-center justify-center">
         <img src={HERO} />
       </div>
