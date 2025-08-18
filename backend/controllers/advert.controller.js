@@ -324,7 +324,10 @@ export const progressAdvert = async (req, res) => {
  */
 export const getActiveAdverts = async (req, res) => {
   try {
-    const adverts = await Advert.find({ status: "active" });
+    const adverts = await Advert.find({ status: "active" }).populate({
+      path: 'restaurant',
+      select: 'name -_id',
+    });
     res.status(201).json({ success: true, data: adverts });
   } catch (error) {
     console.log("Error is fetching all adverts ", error.message);
