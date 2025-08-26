@@ -318,6 +318,53 @@ export const progressAdvert = async (req, res) => {
 };
 
 /**
+ * @desc    Get advert by ID
+ * @route   GET /server/advert/:id
+ * @access  Public
+ */
+export const getAdvertById = async (req, res) => {
+  const session = await mongoose.startSession();
+
+  try {
+    await session.startTransaction();
+    const { id } = req.params;
+
+    // 1. Validate MongoDB ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: "Invalid advert ID format",
+      });
+    }
+
+    // Find advert with proper error handling
+    const advert = await Advert.findById(id)
+      .populate({ path: 'restaurant' }) // Fixed typo
+      .session(session);
+
+    if (!advert) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: "Advert not found",
+      });
+    }
+    await session.commitTransaction();
+    res.status(200).json({ success: true, data: advert });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Error fetching advert by id:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error" // Don't expose error details to client
+    });
+  } finally {
+    await session.endSession(); // Always clean up session
+  }
+}
+
+/**
  * @desc    Get all active adverts
  * @route   GET /server/adverts/getActiveAdverts
  * @access  Public
@@ -326,7 +373,6 @@ export const getActiveAdverts = async (req, res) => {
   try {
     const adverts = await Advert.find({ status: "active" }).populate({
       path: 'restaurant',
-      select: 'name -_id',
     });
     res.status(201).json({ success: true, data: adverts });
   } catch (error) {
@@ -335,6 +381,11 @@ export const getActiveAdverts = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Delete advert (by Delivery Student)
+ * @route   DELETE /server/advert/:id/delete
+ * @access  Public
+ */
 export const deleteAdvert = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
