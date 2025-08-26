@@ -15,8 +15,8 @@ const HomePage = () => {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <div className="font-poppins pt-8 px-8 pb-8">
-        <p className="text-2xl">Hi {user.username}</p>
+      <div className="font-poppins pt-12 px-8 pb-8 h-44">
+        <p className="text-3xl">Hi {user.username}</p>
         <p className="text-[12px] font-light">What do you want to order today?</p>
       </div>
       <div className="bg-white flex-1 px-6 rounded-t-3xl">

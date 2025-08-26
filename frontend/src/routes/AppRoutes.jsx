@@ -14,7 +14,9 @@ import PageWrapper from "@/components/ui/animation/PageWrapper";
 
 // TODO: Import pages here
 import { HomePage, LoginPage, SignUpPage, LandingPage } from "@/pages";
+import AdvertPage from "@/pages/AdvertPage/AdvertPage";
 
+// AppRoutes Component
 const AppRoutes = () => {
   const { user, checkAuth, isCheckingAuth, onlineUsers } = useUserStore();
   const location = useLocation(); // To track route changes
@@ -23,9 +25,8 @@ const AppRoutes = () => {
   const homePageRoute = "/home";
   const loginPageRoute = "/login";
   const signUpPageRoute = "/signup";
+  const advertPageRoute = "/advert/:id";
 
-  console.log(onlineUsers);
-  
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -34,7 +35,7 @@ const AppRoutes = () => {
     <>
       <AnimatePresence mode="wait">
         {
-          //*Loading Page State
+          // Loading Page State
           isCheckingAuth && !user ? (
             <PageWrapper key="loading">
               <div className="absolute flex items-center justify-center h-full w-full">
@@ -43,7 +44,7 @@ const AppRoutes = () => {
             </PageWrapper>
           ) : (
             //TODO: Add Routes Here
-            //* Make sure to wrap the actual routes
+            // Make sure to wrap the actual Pages with PageWrapper for animation
             <Routes location={location} key={location.pathname}>
               <Route
                 path="/"
@@ -59,6 +60,18 @@ const AppRoutes = () => {
                   user ? (
                     <PageWrapper>
                       <HomePage />
+                    </PageWrapper>
+                  ) : (
+                    <Navigate to={loginPageRoute} />
+                  )
+                }
+              />
+              <Route
+                path={advertPageRoute}
+                element={
+                  user ? (
+                    <PageWrapper>
+                      <AdvertPage />
                     </PageWrapper>
                   ) : (
                     <Navigate to={loginPageRoute} />

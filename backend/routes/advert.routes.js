@@ -6,6 +6,7 @@ import {
   cancelAdvert,
   progressAdvert,
   deleteAdvert,
+  getAdvertById
 } from "../controllers/advert.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -16,6 +17,7 @@ router.post("/createAdvert", protectRoute, createAdvert);
 
 // Get Methods
 router.get("/getActiveAdverts", getActiveAdverts);
+router.get("/:id", getAdvertById);
 
 // Patch Methods
 router.patch("/:id/complete", protectRoute, completeAdvert);

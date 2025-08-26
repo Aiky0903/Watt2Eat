@@ -76,7 +76,7 @@ const LoginForm = () => {
           {isLoggingIn ? "Logging in..." : "Log in"}
         </Button>
         <div className="font-poppins">
-          Don't have an account? <a >Sign up</a>
+          Don't have an account? <a href="/signup" className="underline">Sign up</a>
         </div>
       </div>
     </form>

@@ -56,10 +56,10 @@ const advertSchema = new mongoose.Schema(
 
 // Indexes for fast queries
 // TTL Index for auto-expire
-advertSchema.index(
-  { updatedAt: 1 },
-  { expireAfterSeconds: parseInt(process.env.ADVERT_EXPIRY) }
-);
+// advertSchema.index(
+//   { updatedAt: 1 },
+//   { expireAfterSeconds: parseInt(process.env.ADVERT_EXPIRY) }
+// );
 advertSchema.index({ status: 1, createdAt: -1 });
 advertSchema.index({ acceptedOrders: 1 }); // For order lookups
 

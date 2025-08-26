@@ -1,6 +1,5 @@
 import Restaurant from "../models/restaurant.model.js";
 import mongoose from "mongoose";
-import moment from "moment";
 
 /**
  * @desc    Create a new restaurant
