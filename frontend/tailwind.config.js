@@ -11,6 +11,7 @@ export default {
       },
       colors: {
         logoOrange: "#FEB447",
+        mainBlue: "#204160",
       },
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
