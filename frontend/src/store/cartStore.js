@@ -4,11 +4,11 @@ export const useCartStore = create((set, get) => ({
     cartItems: [],
 
     addToCart: (item) => set((state) => {
-        const existingItem = state.cartItems.find(cartItem => cartItem.id === item.id);
+        const existingItem = state.cartItems.find(cartItem => cartItem._id === item._id);
         if (existingItem) {
             return {
                 cartItems: state.cartItems.map(cartItem =>
-                    cartItem.id === item.id
+                    cartItem._id === item._id
                         ? { ...cartItem, quantity: cartItem.quantity + 1 }
                         : cartItem
                 )
@@ -18,12 +18,12 @@ export const useCartStore = create((set, get) => ({
     }),
 
     removeFromCart: (itemId) => set((state) => ({
-        cartItems: state.cartItems.filter(cartItem => cartItem.id !== itemId)
+        cartItems: state.cartItems.filter(cartItem => cartItem._id !== itemId)
     })),
 
     updateQuantity: (itemId, quantity) => set((state) => {
         let updatedCart = state.cartItems.map(cartItem =>
-            cartItem.id === itemId
+            cartItem._id === itemId
                 ? { ...cartItem, quantity }
                 : cartItem
         );

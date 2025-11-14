@@ -7,9 +7,11 @@ import { Clock, Minus, Plus } from "lucide-react"
 import { useEffect } from "react"
 import { format } from 'date-fns'
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useNavigate } from "react-router-dom"
 
 
 const AdvertPage = () => {
+  const navigate = useNavigate()
   const { selectedAdvert, fetchAdvertById, isAdvertLoading } = useAdvertStore()
   const { addToCart, cartItems, updateQuantity, getTotalPrice } = useCartStore(); // Cart actions
   const { id } = useParams()
@@ -30,6 +32,10 @@ const AdvertPage = () => {
   }
 
   const formattedTime = format(new Date(selectedAdvert.estimatedReturnTime), 'h:mm a')
+
+  const handleClick = () => {
+    navigate(`/order-summary/${id}`)
+  }
 
   return (
     <div className="flex flex-col h-full w-full relative">
@@ -53,7 +59,7 @@ const AdvertPage = () => {
                 <div>
                   { // Render each sub-item in category sorted by displayOrder
                     item.items.map((subItem, index) => {
-                      const inCart = cartItems.find(cartItem => cartItem.id === subItem._id);
+                      const inCart = cartItems.find(cartItem => cartItem._id === subItem._id);
                       const quantity = inCart ? inCart.quantity : 0;
                       return (
                         <div key={subItem.id} className="flex flex-col font-medium w-full h-28 border-b border-gray-200 justify-center gap-1 relative">
@@ -67,13 +73,15 @@ const AdvertPage = () => {
 
                           {/* Dynamic Button */}
                           {quantity === 0 ? (
+                            // If quantity is 0, show "Add" button
                             <button
-                              onClick={() => addToCart({ id: subItem._id, name: subItem.name, price: subItem.price, quantity: 1 })}
+                              onClick={() => addToCart({ _id: subItem._id, name: subItem.name, price: subItem.price, quantity: 1 })}
                               className="absolute bottom-6 right-3 border-[#DBD1DE] border rounded-full p-1"
                             >
                               <Plus className="size-5" />
                             </button>
                           ) : (
+                            // If quantity > 0, show quantity selector
                             <div className="absolute bottom-6 right-3 flex items-center gap-2 border-[#DBD1DE] border rounded-full px-2 py-1 bg-white">
                               <button
                                 onClick={() => updateQuantity(subItem._id, quantity - 1)}
@@ -102,7 +110,7 @@ const AdvertPage = () => {
 
       {/* Footer */}
       {cartItems.length > 0 && (
-        <div className="absolute bottom-0 left-0 w-full bg-mainBlue text-white flex justify-center gap-12 items-center px-6 py-3 font-poppins rounded-t-lg font-bold text-sm">
+        <button className="absolute bottom-0 left-0 w-full bg-mainBlue text-white flex justify-center gap-12 items-center px-6 py-3 font-poppins rounded-t-lg font-bold text-sm" onClick={handleClick}>
           <div className="bg-logoOrange rounded-full px-3 py-1 text-mainBlue">
             {
               cartItems.reduce((total, item) => total + item.quantity, 0)
@@ -114,7 +122,7 @@ const AdvertPage = () => {
           <div>
             RM {getTotalPrice().toFixed(2)}
           </div>
-        </div>
+        </button>
       )}
     </div>
   )

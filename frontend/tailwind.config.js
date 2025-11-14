@@ -12,6 +12,8 @@ export default {
       colors: {
         logoOrange: "#FEB447",
         mainBlue: "#204160",
+        mutedText: "#89838B",
+        greyText: "#554F57",
       },
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],

@@ -15,6 +15,7 @@ import PageWrapper from "@/components/ui/animation/PageWrapper";
 // TODO: Import pages here
 import { HomePage, LoginPage, SignUpPage, LandingPage } from "@/pages";
 import AdvertPage from "@/pages/AdvertPage/AdvertPage";
+import OrderSummary from "@/pages/OrderSummary/OrderSummary";
 
 // AppRoutes Component
 const AppRoutes = () => {
@@ -26,6 +27,7 @@ const AppRoutes = () => {
   const loginPageRoute = "/login";
   const signUpPageRoute = "/signup";
   const advertPageRoute = "/advert/:id";
+  const orderSummaryRoute = "/order-summary/:id";
 
   useEffect(() => {
     checkAuth();
@@ -72,6 +74,18 @@ const AppRoutes = () => {
                   user ? (
                     <PageWrapper>
                       <AdvertPage />
+                    </PageWrapper>
+                  ) : (
+                    <Navigate to={loginPageRoute} />
+                  )
+                }
+              />
+              <Route
+                path={orderSummaryRoute}
+                element={
+                  user ? (
+                    <PageWrapper>
+                      <OrderSummary />
                     </PageWrapper>
                   ) : (
                     <Navigate to={loginPageRoute} />

@@ -4,8 +4,13 @@ import { useNavigate } from "react-router-dom";
 
 const BackButton = () => {
   const navigate = useNavigate();
+
+  const handleOnClick = () => {
+    navigate("/home")
+  }
+  
   return (
-    <Button onClick={() => navigate(-1)} className="absolute" size="backButton">
+    <Button onClick={handleOnClick} className="absolute" size="backButton">
       <ChevronLeft className="invert" />
     </Button>
   );
